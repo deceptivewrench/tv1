@@ -47,7 +47,7 @@ async function fetchEpisodes(searchUrl, requiredKeyword) {
   }
 }
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   const asiaExpressUrl = 'https://serialeromanesti.net/?s=Asia+Express+Sezonul+9';
   const insulaIubiriiUrl = 'https://paginamea.net/?s=insula+iubirii+sezonul+10';
 
@@ -59,4 +59,4 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Content-Type', 'application/json');
   res.status(200).json({ asiaExpress, insulaIubirii });
-}
+};
