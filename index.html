@@ -34,8 +34,7 @@
   </div>
 
   <script>
-    // Replace URL with your hosted backend endpoint
-    const API_URL = 'YOUR_BACKEND_URL_HERE/api/episodes';
+    const API_URL = '/api/episodes';
 
     async function loadEpisodes() {
       try {
@@ -57,7 +56,7 @@
       container.innerHTML = '';
 
       if (!items || items.length === 0) {
-        container.innerHTML = '<p>Nu s-au găsit episoade.</p>';
+        container.innerHTML = '<p style="text-align:center; color:#888;">Nu s-au găsit episoade.</p>';
         return;
       }
 
