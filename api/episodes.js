@@ -1,7 +1,7 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
 
-async function fetchEpisodes(searchUrl, requiredKeywords) {
+async function fetchEpisodes(searchUrl, requiredKeywords, limit = null) {
   try {
     const { data: html } = await axios.get(searchUrl, {
       headers: {
@@ -24,22 +24,27 @@ async function fetchEpisodes(searchUrl, requiredKeywords) {
       );
 
       if (link && matches) {
-        const detailPromise = axios.get(link, {
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-          },
-          timeout: 5000
-        }).then(res => {
-          const $page = cheerio.load(res.data);
-          const embedSrc = $page('iframe').attr('src');
-          return { title, pageUrl: link, embedSrc };
-        }).catch(() => null);
-
-        articlePromises.push(detailPromise);
+        articlePromises.push({ title, link });
       }
     });
 
-    const results = await Promise.all(articlePromises);
+    // If limit is specified (fast mode), only take the top N episodes
+    const targets = limit ? articlePromises.slice(0, limit) : articlePromises;
+
+    const detailPromises = targets.map(item => {
+      return axios.get(item.link, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        },
+        timeout: 5000
+      }).then(res => {
+        const $page = cheerio.load(res.data);
+        const embedSrc = $page('iframe').attr('src');
+        return { title: item.title, pageUrl: item.link, embedSrc };
+      }).catch(() => null);
+    });
+
+    const results = await Promise.all(detailPromises);
     return results.filter(item => item && item.embedSrc);
   } catch (error) {
     return [];
@@ -47,12 +52,15 @@ async function fetchEpisodes(searchUrl, requiredKeywords) {
 }
 
 module.exports = async (req, res) => {
+  const isFastMode = req.query.fast === 'true';
+  const limit = isFastMode ? 1 : null;
+
   const asiaExpressUrl = 'https://serialeromanesti.net/?s=Asia+Express+Sezonul+9';
   const insulaIubiriiUrl = 'https://serialeromanesti.net/?s=Insula+Iubirii+Sezonul+10';
 
   const [asiaExpress, insulaIubirii] = await Promise.all([
-    fetchEpisodes(asiaExpressUrl, ['Asia Express']),
-    fetchEpisodes(insulaIubiriiUrl, ['Insula', 'Iubirii'])
+    fetchEpisodes(asiaExpressUrl, ['Asia Express'], limit),
+    fetchEpisodes(insulaIubiriiUrl, ['Insula', 'Iubirii'], limit)
   ]);
 
   res.setHeader('Access-Control-Allow-Origin', '*');
