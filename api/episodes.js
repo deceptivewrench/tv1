@@ -19,7 +19,6 @@ async function fetchEpisodes(searchUrl, requiredKeywords) {
       const title = $(el).text().trim();
       const link = $(el).attr('href');
       
-      // Match keywords loosely
       const matches = requiredKeywords.every(kw => 
         title.toLowerCase().includes(kw.toLowerCase())
       );
@@ -49,7 +48,7 @@ async function fetchEpisodes(searchUrl, requiredKeywords) {
 
 module.exports = async (req, res) => {
   const asiaExpressUrl = 'https://serialeromanesti.net/?s=Asia+Express+Sezonul+9';
-  const insulaIubiriiUrl = 'https://paginamea.net/?s=insula+iubirii+sezonul+10';
+  const insulaIubiriiUrl = 'https://serialeromanesti.net/?s=Insula+Iubirii+Sezonul+10';
 
   const [asiaExpress, insulaIubirii] = await Promise.all([
     fetchEpisodes(asiaExpressUrl, ['Asia Express']),
