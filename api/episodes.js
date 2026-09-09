@@ -28,10 +28,9 @@ async function fetchEpisodes(searchUrl, requiredKeywords, limit = null) {
       }
     });
 
-    // If limit is specified (fast mode), only take the top N episodes
     const targets = limit ? articlePromises.slice(0, limit) : articlePromises;
 
-    const detailPromises = targets.map(item => {
+    const detailPromises = targets.map((item) => {
       return axios.get(item.link, {
         headers: {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
@@ -39,13 +38,29 @@ async function fetchEpisodes(searchUrl, requiredKeywords, limit = null) {
         timeout: 5000
       }).then(res => {
         const $page = cheerio.load(res.data);
-        const embedSrc = $page('iframe').attr('src');
-        return { title: item.title, pageUrl: item.link, embedSrc };
+        const embedSources = [];
+
+        // Collect ALL video players/iframes on the page
+        $page('iframe').each((_, iframe) => {
+          const src = $page(iframe).attr('src');
+          if (src && !embedSources.includes(src)) {
+            embedSources.push(src);
+          }
+        });
+
+        const primaryEmbed = embedSources.length > 0 ? embedSources[0] : null;
+
+        return { 
+          title: item.title, 
+          pageUrl: item.link, 
+          embedSrc: primaryEmbed, // Used for full archive mode (1 player per episode)
+          embedSources: embedSources // Used for homepage mode (all servers)
+        };
       }).catch(() => null);
     });
 
     const results = await Promise.all(detailPromises);
-    return results.filter(item => item && item.embedSrc);
+    return results.filter(item => item && (item.embedSrc || (item.embedSources && item.embedSources.length > 0)));
   } catch (error) {
     return [];
   }
