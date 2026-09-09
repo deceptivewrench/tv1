@@ -19,7 +19,6 @@ async function fetchEpisodes(searchUrl, requiredKeyword) {
       const title = $(el).text().trim();
       const link = $(el).attr('href');
       
-      // Strict keyword filter (excludes Survivor Romania, etc.)
       const matchesKeyword = requiredKeyword
         .toLowerCase()
         .split(' ')
