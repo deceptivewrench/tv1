@@ -1,7 +1,7 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
 
-async function fetchEpisodes(searchUrl, requiredKeyword) {
+async function fetchEpisodes(searchUrl, requiredKeywords) {
   try {
     const { data: html } = await axios.get(searchUrl, {
       headers: {
@@ -15,16 +15,16 @@ async function fetchEpisodes(searchUrl, requiredKeyword) {
 
     const articlePromises = [];
     
-    $('article h2 a, .entry-title a, h2.post-title a').each((_, el) => {
+    $('article h2 a, .entry-title a, h2.post-title a, header.entry-header a').each((_, el) => {
       const title = $(el).text().trim();
       const link = $(el).attr('href');
       
-      const matchesKeyword = requiredKeyword
-        .toLowerCase()
-        .split(' ')
-        .every(word => title.toLowerCase().includes(word));
+      // Match keywords loosely
+      const matches = requiredKeywords.every(kw => 
+        title.toLowerCase().includes(kw.toLowerCase())
+      );
 
-      if (link && matchesKeyword) {
+      if (link && matches) {
         const detailPromise = axios.get(link, {
           headers: {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
@@ -52,8 +52,8 @@ module.exports = async (req, res) => {
   const insulaIubiriiUrl = 'https://paginamea.net/?s=insula+iubirii+sezonul+10';
 
   const [asiaExpress, insulaIubirii] = await Promise.all([
-    fetchEpisodes(asiaExpressUrl, 'Asia Express'),
-    fetchEpisodes(insulaIubiriiUrl, 'Insula Iubirii')
+    fetchEpisodes(asiaExpressUrl, ['Asia Express']),
+    fetchEpisodes(insulaIubiriiUrl, ['Insula', 'Iubirii'])
   ]);
 
   res.setHeader('Access-Control-Allow-Origin', '*');
