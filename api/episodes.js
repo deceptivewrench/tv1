@@ -71,7 +71,8 @@ module.exports = async (req, res) => {
   const limit = isFastMode ? 1 : null;
 
   const asiaExpressUrl = 'https://serialeromanesti.net/?s=Asia+Express+Sezonul+9';
-  const insulaIubiriiUrl = 'https://serialeromanesti.net/?s=Insula+Iubirii+Sezonul+10';
+  const insulaIubiriiUrl2 = 'https://serialeromanesti.net/?s=Insula+Iubirii+Sezonul+10';
+  const insulaIubiriiUrl = 'https://veziaici.net/?s=%22insula+iubirii+sezonul+10%22';
 
   const [asiaExpress, insulaIubirii] = await Promise.all([
     fetchEpisodes(asiaExpressUrl, ['Asia Express'], limit),
